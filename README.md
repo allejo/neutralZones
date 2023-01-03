@@ -8,7 +8,7 @@ A BZFlag plug-in for adding zones to a map where flags are disallowed, meaning p
 
 ## Requirements
 
-- BZFlag 2.4.4
+- BZFS 2.4.4+
 
 This plug-in follows [my standard instructions for compiling plug-ins](https://github.com/allejo/docs.allejo.io/wiki/BZFlag-Plug-in-Distribution).
 
