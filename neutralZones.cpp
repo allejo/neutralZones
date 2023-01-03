@@ -20,10 +20,20 @@
  * THE SOFTWARE.
  */
 
-#include <set>
-
 #include "bzfsAPI.h"
-#include "plugin_utils.h"
+
+// Define plug-in name
+const std::string PLUGIN_NAME = "Neutral Zones";
+
+// Define plug-in version numbering
+const int MAJOR = 1;
+const int MINOR = 0;
+const int REV = 0;
+const int BUILD = 1;
+const std::string SUFFIX = "";
+
+// Define build settings
+const int VERBOSITY_LEVEL = 4;
 
 class NeutralZone : public bz_CustomZoneObject
 {
@@ -32,11 +42,17 @@ public:
     {
     }
 
+    bool disallowAllFlags = false;
     std::vector<bz_eTeamType> teams;
     std::vector<bz_ApiString> flags;
 
     bool hasDisallowedFlag(const int flagID)
     {
+        if (disallowAllFlags)
+        {
+            return true;
+        }
+
         auto flag = bz_getFlagName(flagID);
 
         return std::find(flags.begin(), flags.end(), flag) != flags.end();
@@ -44,7 +60,8 @@ public:
 
     bool targetsTeam(bz_eTeamType team)
     {
-        return std::find(teams.begin(), teams.begin(), team) != teams.end();
+        // If there's no targeted teams, then affect all teams
+        return teams.size() == 0 || std::find(teams.begin(), teams.end(), team) != teams.end();
     }
 };
 
@@ -65,7 +82,19 @@ BZ_PLUGIN(NeutralZones)
 
 const char* NeutralZones::Name()
 {
-    return "Neutral Zones";
+    static const char *pluginBuild;
+
+    if (!pluginBuild)
+    {
+        pluginBuild = bz_format("%s %d.%d.%d (%d)", PLUGIN_NAME.c_str(), MAJOR, MINOR, REV, BUILD);
+
+        if (!SUFFIX.empty())
+        {
+            pluginBuild = bz_format("%s - %s", pluginBuild, SUFFIX.c_str());
+        }
+    }
+
+    return pluginBuild;
 }
 
 void NeutralZones::Init(const char* /* config */)
@@ -98,9 +127,9 @@ void NeutralZones::Event(bz_EventData* eventData)
                 return;
             }
 
-            for (auto zone : neutralZones)
+            for (auto &zone : neutralZones)
             {
-                if (zone.pointInZone(data->state.pos) && zone.targetsTeam(pr->team) && zone.hasDisallowedFlag(pr->currentFlagID))
+                if (zone.targetsTeam(pr->team) && zone.hasDisallowedFlag(pr->currentFlagID) && zone.pointInZone(data->state.pos))
                 {
                     bz_removePlayerFlag(data->playerID);
                     bz_sendTextMessagef(BZ_SERVER, data->playerID, "You've entered a neutral zone, your %s has been removed.", pr->currentFlag.c_str());
@@ -148,7 +177,13 @@ bool NeutralZones::MapObject(bz_ApiString object, bz_CustomMapObjectInfo* data)
             }
             else if (key == "FLAG")
             {
-                neutralZone.flags.push_back(nubs->get(1));
+                auto abbv = nubs->get(1);
+
+                if (abbv == "*") {
+                    neutralZone.disallowAllFlags = true;
+                } else {
+                    neutralZone.flags.push_back(abbv);
+                }
             }
         }
     }
