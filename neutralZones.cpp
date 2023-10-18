@@ -30,8 +30,8 @@ const std::string PLUGIN_NAME = "Neutral Zones";
 // Define plug-in version numbering
 const int MAJOR = 1;
 const int MINOR = 0;
-const int REV = 0;
-const int BUILD = 1;
+const int REV = 1;
+const int BUILD = 7;
 const std::string SUFFIX = "";
 
 // Define build settings
@@ -134,6 +134,25 @@ void NeutralZones::Event(bz_EventData* eventData)
                 if (zone.targetsTeam(pr->team) && zone.hasDisallowedFlag(pr->currentFlagID) && zone.pointInZone(data->state.pos))
                 {
                     bz_removePlayerFlag(data->playerID);
+                    
+                    auto abbr = bz_getFlagName(pr->currentFlagID);
+                    auto isTeamFlag = (abbr == "R*" || abbr == "G*" || abbr == "B*" || abbr == "P*");
+                    
+                    if (isTeamFlag)
+                    {
+                        float pos[3];
+
+                        if (bz_getNearestFlagSafetyZone(pr->currentFlagID, pos))
+                        {
+                            bz_moveFlag(pr->currentFlagID, pos);
+                        }
+                        else
+                        {
+                            // If there is no safety zone nearby, then reset it to the team base
+                            bz_resetFlag(pr->currentFlagID);
+                        }
+                    }
+                    
                     bz_sendTextMessagef(BZ_SERVER, data->playerID, "You've entered a neutral zone, your %s has been removed.", pr->currentFlag.c_str());
 
                     break;

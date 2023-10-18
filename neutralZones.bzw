@@ -1,4 +1,6 @@
 options
+    -c
+    -mp 5,1,1,1,1,20
     +f V{5}
     +f GM{5}
     +f SW{5}
@@ -10,6 +12,44 @@ options
     -srvmsg "Purple rectangle neutral zone: no US allowed for blues"
     -srvmsg "Yellow neutral zone: no GM for rogues or purples"
     -srvmsg "Green neutral zone: all flags disallowed for everyone"
+    -srvmsg "  Red and Green team flags will be sent to the pink zone"
+    -srvmsg "  Blue and Purple team flags will be sent to their base"
+end
+
+base
+    pos 80 10 0
+    size 5 5 0.1
+    color 1
+end
+
+base
+    pos 80 20 0
+    size 5 5 0.1
+    color 2
+end
+
+base
+    pos 80 -10 0
+    size 5 5 0.1
+    color 3
+end
+
+base
+    pos 80 -20 0
+    size 5 5 0.1
+    color 4
+end
+
+zone
+   pos -80 20 0
+   size 5 5 0.1
+   safety 1 2
+end
+
+box
+   pos -80 20 -1
+   size 5 5 0.1
+   color pink
 end
 
 box
